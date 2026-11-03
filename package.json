@@ -1,0 +1,32 @@
+{
+  "name": "noir-casino",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Casino clandestin noir — rembourse la mafia avant la fin du temps imparti (argent fictif).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "sim": "tsx sim/run.ts",
+    "sim:quick": "tsx sim/run.ts --quick",
+    "icons": "node scripts/gen-icons.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@fontsource/bebas-neue": "^5.3.0",
+    "@fontsource/limelight": "^5.3.0",
+    "@fontsource/special-elite": "^5.3.0"
+  }
+}
