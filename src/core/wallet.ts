@@ -4,11 +4,20 @@
  * son montant reste « en jeu », ce qui empêche de déclarer la faillite trop tôt.
  */
 type Listener = () => void;
+export interface SettleEvent {
+  game: string;
+  /** Total misé sur le coup (doublements et séparations compris). */
+  staked: number;
+  /** Total rendu, mise comprise. */
+  returned: number;
+}
+type SettleListener = (e: SettleEvent) => void;
 
 export class Wallet {
   private _balance: number;
   private inPlayByGame = new Map<string, number>();
   private listeners = new Set<Listener>();
+  private settleListeners = new Set<SettleListener>();
 
   constructor(balance = 0) {
     this._balance = balance;
@@ -44,9 +53,17 @@ export class Wallet {
   /** Clôt le coup en cours d'un jeu et verse `returned` (mise comprise). */
   settle(game: string, returned: number): void {
     if (returned < 0) throw new RangeError('retour négatif');
+    const staked = this.inPlayFor(game);
     this._balance += returned;
     this.inPlayByGame.delete(game);
     this.emit();
+    for (const l of this.settleListeners) l({ game, staked, returned });
+  }
+
+  /** Notifié à la fin de chaque coup (pour les effets de gain / perte). */
+  onSettle(fn: SettleListener): () => void {
+    this.settleListeners.add(fn);
+    return () => this.settleListeners.delete(fn);
   }
 
   /** Ajout direct (avance de la mafia). */

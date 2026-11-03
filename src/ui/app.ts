@@ -6,6 +6,7 @@ import { formatClock } from '../core/timer';
 import { GAMES, globalMinBet } from '../games/registry';
 import { RISK_LABEL, type GameContext, type GameView } from '../games/types';
 import { h, isTypingTarget, money, setMotionPref, svg, systemPrefersReducedMotion, type MotionPref } from './dom';
+import { MoneyFx } from './moneyfx';
 import { Sound } from './sound';
 import { introMessage, lostMessage, mobsterFor, paidMessage } from './story';
 import { roundParams } from '../core/rounds';
@@ -23,6 +24,9 @@ export class App {
   private current = GAMES[0].id;
   private abort: AbortController | null = null;
   private lastBeepSecond = -1;
+  private moneyFx: MoneyFx;
+  /** L'annonce « vous pouvez payer » a-t-elle déjà été faite pour ce franchissement ? */
+  private readyAnnounced = false;
   private modalOpen: HTMLElement | null = null;
 
   // Éléments fixes
@@ -126,6 +130,11 @@ export class App {
 
     root.append(this.hud, this.tabs, this.stage, this.screen, this.modalRoot, this.toasts);
     this.renderMute();
+    this.moneyFx = new MoneyFx(this.hudMoney, this.hudMoney.parentElement!, this.sound, () => {
+      const panel = this.views.get(this.current)?.el;
+      const main = panel?.querySelector<HTMLElement>('.felt, .slots__cabinet, .vp__screen');
+      return (main ?? panel)?.getBoundingClientRect() ?? null;
+    });
     // Les écrans et la modale se placent sous le HUD, qui reste toujours visible.
     new ResizeObserver(() =>
       document.documentElement.style.setProperty('--hud-h', `${this.hud.offsetHeight}px`),
@@ -195,7 +204,13 @@ export class App {
   private newRun(): void {
     this.destroyViews();
     this.run = new Run(globalMinBet);
-    this.run.wallet.subscribe(() => this.renderHud());
+    const run = this.run;
+    run.wallet.subscribe(() => this.renderHud());
+    run.wallet.onSettle((e) => {
+      this.moneyFx.onSettle(e, run.wallet.balance, run.debt);
+      this.checkReady();
+    });
+    this.moneyFx.reset(run.wallet.balance);
     this.current = GAMES[0].id;
     this.showIntro();
   }
@@ -241,6 +256,7 @@ export class App {
     this.createViews();
     this.tabs.hidden = false;
     this.lastBeepSecond = -1;
+    this.readyAnnounced = run.wallet.balance >= run.debt;
     run.start();
     this.renderHud();
     if (!this.save.seenHelp) {
@@ -260,6 +276,7 @@ export class App {
       return;
     }
     this.sound.play('pay');
+    this.moneyFx.note(`−${money(run.debt)} · dette payée`, 'paid');
     this.destroyViews();
     this.closeModal();
     this.recordBest();
@@ -293,6 +310,7 @@ export class App {
             onclick: () => {
               run.nextRound();
               this.showIntro();
+              this.moneyFx.note(`+${money(run.params.capital)} · avance`, 'gift');
             },
           },
           h('span', {}, 'Manche suivante'),
@@ -422,7 +440,7 @@ export class App {
     const w = run.wallet;
     const ms = run.phase === 'intro' ? run.params.timeSec * 1000 : run.timer.remainingMs();
     this.hudRound.textContent = String(run.round);
-    this.hudMoney.textContent = money(w.balance);
+    this.moneyFx.set(w.balance);
     this.hudDebt.textContent = money(run.debt);
     const clock = formatClock(ms);
     if (this.hudTimer.textContent !== clock) {
@@ -440,6 +458,27 @@ export class App {
     const txt = can ? `Payer ${money(run.debt)}` : run.phase === 'playing' && w.inPlay > 0 ? 'Coup en cours…' : 'Rembourser';
     if (label.textContent !== txt) label.textContent = txt;
     this.payBtn.setAttribute('aria-label', can ? `Rembourser la dette de ${money(run.debt)}` : `Rembourser (il faut ${money(run.debt)})`);
+  }
+
+  /** Célèbre le moment où le joueur a enfin de quoi rembourser. */
+  private checkReady(): void {
+    const run = this.run;
+    if (!run || run.phase !== 'playing') return;
+    const enough = run.wallet.balance >= run.debt;
+    if (!enough) {
+      this.readyAnnounced = false;
+      return;
+    }
+    if (this.readyAnnounced) return;
+    this.readyAnnounced = true;
+    setTimeout(() => {
+      if (run.phase !== 'playing') return;
+      this.sound.play('ready');
+      this.payBtn.classList.remove('btn--pay-pop');
+      void this.payBtn.offsetWidth;
+      this.payBtn.classList.add('btn--pay-pop');
+      this.toast('Vous avez de quoi payer la Famille ! Touchez « Payer » (P).', 'win');
+    }, 900);
   }
 
   private onVisibility(): void {

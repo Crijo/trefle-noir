@@ -14,7 +14,11 @@ export type SoundName =
   | 'alarmHigh'
   | 'pay'
   | 'gameOver'
-  | 'click';
+  | 'click'
+  | 'coin'
+  | 'cashIn'
+  | 'drain'
+  | 'ready';
 
 export class Sound {
   private ctx: AudioContext | null = null;
@@ -84,6 +88,26 @@ export class Sound {
         this.tone(1568, t, 0.25, 'sine', 0.25);
         this.tone(2093, t + 0.1, 0.35, 'sine', 0.2);
         this.burst(t, 0.12, 4000, 0.25);
+        break;
+      case 'coin':
+        // Petite pièce qui tombe dans la caisse : deux harmoniques brillantes.
+        this.tone(2637, t, 0.09, 'sine', 0.16);
+        this.tone(3951, t + 0.025, 0.12, 'sine', 0.1);
+        break;
+      case 'cashIn':
+        // « Ka-ching » : clochette + tiroir-caisse.
+        this.burst(t, 0.05, 2500, 0.3);
+        this.tone(1319, t + 0.04, 0.12, 'triangle', 0.22);
+        this.tone(2637, t + 0.1, 0.35, 'sine', 0.2);
+        this.tone(3520, t + 0.1, 0.3, 'sine', 0.12);
+        break;
+      case 'drain':
+        // L'argent qui s'en va : glissando descendant feutré.
+        this.slide(660, 330, t, 0.22, 'triangle', 0.1);
+        break;
+      case 'ready':
+        // Assez pour payer : fanfare courte.
+        [392, 523, 659, 784, 1047].forEach((f, i) => this.tone(f, t + i * 0.07, 0.25, 'square', 0.08));
         break;
       case 'gameOver':
         [392, 349, 311, 262].forEach((f, i) => this.tone(f, t + i * 0.22, 0.3, 'sawtooth', 0.12));

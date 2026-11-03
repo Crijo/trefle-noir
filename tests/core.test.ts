@@ -47,6 +47,16 @@ describe('portefeuille', () => {
     expect(w.balance).toBe(130);
     expect(w.inPlay).toBe(0);
   });
+
+  it('signale chaque coup réglé avec la mise et le retour', () => {
+    const w = new Wallet(100);
+    const events: unknown[] = [];
+    w.onSettle((e) => events.push(e));
+    w.take('bj', 20);
+    w.take('bj', 20); // doublement
+    w.settle('bj', 80);
+    expect(events).toEqual([{ game: 'bj', staked: 40, returned: 80 }]);
+  });
 });
 
 describe('déroulé d\'une partie', () => {

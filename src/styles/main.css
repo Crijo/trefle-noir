@@ -2079,3 +2079,239 @@ kbd {
 .modal .motion-pref__hint {
   text-align: left;
 }
+
+/* ---------------------- Effets d'argent (tous les jeux) ---------------------- */
+
+.hud__cell--money {
+  position: relative;
+}
+.hud__value--money {
+  display: inline-block;
+  transform-origin: left center;
+  font-variant-numeric: tabular-nums;
+}
+.hud__value--money.is-bump {
+  animation: money-bump 0.18s ease-out;
+}
+@keyframes money-bump {
+  50% {
+    transform: scale(1.12);
+    color: #fff6d8;
+    text-shadow: 0 0 10px var(--gold-2);
+  }
+}
+.hud__cell--win .hud__value--money {
+  animation: money-glow 0.9s ease-out;
+}
+.hud__cell--big .hud__value--money {
+  animation: money-glow-big 0.9s ease-out;
+}
+.hud__cell--lose .hud__value--money {
+  animation: money-lose 0.5s ease-out;
+}
+@keyframes money-glow {
+  30% {
+    color: #fff;
+    text-shadow: 0 0 8px var(--gold-2), 0 0 20px var(--gold);
+  }
+}
+@keyframes money-glow-big {
+  20%,
+  60% {
+    color: #fff;
+    text-shadow: 0 0 10px #fff, 0 0 26px var(--gold-2), 0 0 40px var(--neon-pink);
+    transform: scale(1.15);
+  }
+}
+@keyframes money-lose {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+    color: var(--lose);
+  }
+  40% {
+    transform: translateX(4px);
+    color: var(--lose);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+}
+
+.money-float {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #0b090cd9;
+  z-index: 3;
+  pointer-events: none;
+  white-space: nowrap;
+  font: 22px/1 var(--font-num);
+  letter-spacing: 0.04em;
+  animation: money-float-up 1.4s ease-out forwards;
+}
+.money-float--win {
+  color: var(--win);
+  text-shadow: 0 0 8px #7dffb288, 0 2px 2px #000;
+}
+.money-float--big {
+  font-size: 32px;
+  color: #fff6d0;
+  text-shadow: 0 0 10px var(--gold-2), 0 0 24px var(--neon-pink), 0 2px 2px #000;
+  animation-duration: 2.1s;
+}
+.money-float--lose {
+  color: var(--lose);
+  text-shadow: 0 2px 2px #000;
+  animation-name: money-float-down;
+}
+.money-float--push {
+  color: var(--muted);
+  font-size: 16px;
+}
+.money-float--gift {
+  color: var(--gold-2);
+}
+.money-float--paid {
+  color: #ff9aa9;
+  animation-name: money-float-down;
+}
+.money-float.is-static {
+  animation: none !important;
+}
+@keyframes money-float-up {
+  0% {
+    transform: translateY(16px) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(4px) scale(1.15);
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-2px) scale(1);
+    opacity: 0;
+  }
+}
+@keyframes money-float-down {
+  0% {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+}
+
+/* Série de gains */
+.streak {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font: 12px/1.2 var(--font-num);
+  letter-spacing: 0.08em;
+  color: #1a0a00;
+  background: linear-gradient(#ffd56a, #ff8a3d);
+  box-shadow: 0 0 8px #ff8a3d88;
+  white-space: nowrap;
+}
+.streak--4,
+.streak--5 {
+  background: linear-gradient(#ffb0c9, #ff3d8b);
+  color: #fff;
+  box-shadow: 0 0 12px #ff3d8b;
+}
+.streak--6 {
+  background: linear-gradient(#bff9ff, #43f0ff);
+  box-shadow: 0 0 16px var(--neon-cyan), 0 0 30px var(--neon-pink);
+}
+.streak.is-pop {
+  animation: pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.streak--broken {
+  background: #555;
+  color: #ccc;
+  box-shadow: none;
+  animation: streak-break 0.6s ease-in forwards;
+}
+@keyframes streak-break {
+  to {
+    transform: translateY(10px) rotate(-12deg);
+    opacity: 0;
+  }
+}
+
+/* Calque des pièces volantes et flash des gros gains */
+.fx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  overflow: hidden;
+}
+.fly-coin {
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff7cf, #e8bb4f 55%, #8a6114);
+  box-shadow: inset 0 0 0 2px #b8892a, 0 0 8px #ffd56a99;
+  will-change: transform;
+}
+.fly-coin::after {
+  content: '$';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 13px/1 var(--font-display);
+  color: #7a5414;
+}
+.screen-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, #fff3c466, #ffd56a22 40%, transparent 70%);
+  animation: screen-flash 0.8s ease-out forwards;
+}
+@keyframes screen-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Assez pour payer : le bouton saute */
+.btn--pay-pop {
+  animation: pay-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1), pay-ready 1.6s ease-in-out 0.6s infinite;
+}
+@keyframes pay-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18) rotate(-3deg);
+    box-shadow: 0 0 0 4px #fff4, 0 0 40px #ffcf6a;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
